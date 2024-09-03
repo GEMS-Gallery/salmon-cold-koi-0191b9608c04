@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { backend } from 'declarations/backend';
 import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,7 +13,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
-import { useQuill } from 'react-quilljs';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
 
 interface Post {
   id: bigint;
@@ -66,19 +67,29 @@ const App: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
-  const { quill, quillRef } = useQuill();
+  const quillRef = useRef<Quill | null>(null);
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
   useEffect(() => {
-    if (quill) {
-      quill.on('text-change', () => {
-        setNewPost(prev => ({ ...prev, body: quill.root.innerHTML }));
+    if (openDialog && !quillRef.current) {
+      quillRef.current = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, false] }],
+            ['bold', 'italic', 'underline'],
+            ['code-block']
+          ]
+        },
+      });
+      quillRef.current.on('text-change', () => {
+        setNewPost(prev => ({ ...prev, body: quillRef.current?.root.innerHTML || '' }));
       });
     }
-  }, [quill]);
+  }, [openDialog]);
 
   const fetchPosts = async () => {
     try {
@@ -97,8 +108,8 @@ const App: React.FC = () => {
       await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
       setOpenDialog(false);
       setNewPost({ title: '', body: '', author: '', category: '' });
-      if (quill) {
-        quill.setContents([]);
+      if (quillRef.current) {
+        quillRef.current.setContents([]);
       }
       await fetchPosts();
     } catch (error) {
@@ -201,7 +212,7 @@ const App: React.FC = () => {
           </FormControl>
           <div className="mt-4">
             <Typography variant="subtitle1" gutterBottom>Body</Typography>
-            <div ref={quillRef} />
+            <div id="editor" style={{ height: '200px' }} />
           </div>
         </DialogContent>
         <DialogActions>
