@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import SecurityIcon from '@mui/icons-material/Security';
+import CodeIcon from '@mui/icons-material/Code';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import GroupIcon from '@mui/icons-material/Group';
+import SearchIcon from '@mui/icons-material/Search';
+import ComputerIcon from '@mui/icons-material/Computer';
+import LockIcon from '@mui/icons-material/Lock';
+import MemoryIcon from '@mui/icons-material/Memory';
+import PublicIcon from '@mui/icons-material/Public';
 
 interface Post {
   id: bigint;
@@ -13,17 +23,33 @@ interface Post {
 }
 
 const categories = [
-  'Ethical Hacking',
-  'Cybersecurity',
-  'Network Security',
-  'Web Security',
-  'Cryptography',
-  'Malware Analysis',
-  'Social Engineering',
-  'Penetration Testing',
-  'Forensics',
-  'Reverse Engineering'
+  { name: 'Ethical Hacking', icon: <SecurityIcon /> },
+  { name: 'Cybersecurity', icon: <LockIcon /> },
+  { name: 'Network Security', icon: <PublicIcon /> },
+  { name: 'Web Security', icon: <CodeIcon /> },
+  { name: 'Cryptography', icon: <VpnKeyIcon /> },
+  { name: 'Malware Analysis', icon: <BugReportIcon /> },
+  { name: 'Social Engineering', icon: <GroupIcon /> },
+  { name: 'Penetration Testing', icon: <SearchIcon /> },
+  { name: 'Forensics', icon: <ComputerIcon /> },
+  { name: 'Reverse Engineering', icon: <MemoryIcon /> },
+  { name: 'General', icon: <SecurityIcon /> }
 ];
+
+const CategoryList: React.FC = () => (
+  <div className="flex flex-wrap justify-center mb-4">
+    {categories.map((category) => (
+      <Chip
+        key={category.name}
+        icon={category.icon}
+        label={category.name}
+        variant="outlined"
+        className="m-1"
+        sx={{ fontFamily: '"Courier New", Courier, monospace' }}
+      />
+    ))}
+  </div>
+);
 
 const App: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -76,6 +102,8 @@ const App: React.FC = () => {
         <Typography variant="h5" component="p" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'gray' }}>
           Explore the latest insights in the world of hacking and cybersecurity
         </Typography>
+
+        <CategoryList />
 
         {loading ? (
           <CircularProgress />
@@ -139,7 +167,7 @@ const App: React.FC = () => {
               sx={{ fontFamily: '"Courier New", Courier, monospace' }}
             >
               {categories.map((category) => (
-                <MenuItem key={category} value={category}>{category}</MenuItem>
+                <MenuItem key={category.name} value={category.name}>{category.name}</MenuItem>
               ))}
             </Select>
           </FormControl>

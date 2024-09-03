@@ -20,6 +20,9 @@ actor {
   stable var posts : [Post] = [];
   stable var nextId : Nat = 0;
 
+  // Default category
+  let defaultCategory = "General";
+
   // Get all posts, sorted by recency
   public query func getPosts() : async [Post] {
     Array.sort(posts, func(a: Post, b: Post) : { #less; #equal; #greater } {
@@ -29,12 +32,13 @@ actor {
 
   // Create a new blog post
   public func createPost(title: Text, body: Text, author: Text, category: Text) : async Nat {
+    let postCategory = if (category == "") { defaultCategory } else { category };
     let post : Post = {
       id = nextId;
       title = title;
       body = body;
       author = author;
-      category = category;
+      category = postCategory;
       timestamp = Time.now();
     };
     posts := Array.append(posts, [post]);
