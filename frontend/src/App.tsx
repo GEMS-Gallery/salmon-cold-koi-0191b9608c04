@@ -36,18 +36,31 @@ const categories = [
   { name: 'General', icon: <SecurityIcon /> }
 ];
 
-const CategoryList: React.FC = () => (
+interface CategoryListProps {
+  selectedCategory: string;
+  onCategorySelect: (category: string) => void;
+}
+
+const CategoryList: React.FC<CategoryListProps> = ({ selectedCategory, onCategorySelect }) => (
   <div className="flex flex-wrap justify-center mb-4">
     {categories.map((category) => (
       <Chip
         key={category.name}
         icon={category.icon}
         label={category.name}
-        variant="outlined"
+        onClick={() => onCategorySelect(category.name)}
+        variant={selectedCategory === category.name ? "filled" : "outlined"}
         className="m-1"
         sx={{ fontFamily: '"Courier New", Courier, monospace' }}
       />
     ))}
+    <Chip
+      label="All Categories"
+      onClick={() => onCategorySelect('')}
+      variant={selectedCategory === '' ? "filled" : "outlined"}
+      className="m-1"
+      sx={{ fontFamily: '"Courier New", Courier, monospace' }}
+    />
   </div>
 );
 
@@ -56,6 +69,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     fetchPosts();
@@ -85,6 +99,10 @@ const App: React.FC = () => {
     }
   };
 
+  const filteredPosts = selectedCategory
+    ? posts.filter(post => post.category === selectedCategory)
+    : posts;
+
   return (
     <div className="min-h-screen bg-white">
       <AppBar position="static" color="primary">
@@ -103,7 +121,7 @@ const App: React.FC = () => {
           Explore the latest insights in the world of hacking and cybersecurity
         </Typography>
 
-        <CategoryList />
+        <CategoryList selectedCategory={selectedCategory} onCategorySelect={setSelectedCategory} />
 
         {loading ? (
           <CircularProgress />
@@ -119,7 +137,7 @@ const App: React.FC = () => {
             >
               Create Post
             </Button>
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <Card key={Number(post.id)} className="mb-4" sx={{ backgroundColor: '#f0f0f0', border: '1px solid black' }}>
                 <CardContent>
                   <Typography variant="h5" component="div" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }}>
