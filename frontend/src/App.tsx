@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { backend } from 'declarations/backend';
 import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,7 +13,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
-import Quill from 'quill';
+import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
 
 interface Post {
@@ -67,38 +67,19 @@ const App: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
-  const quillRef = useRef<Quill | null>(null);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const { quill, quillRef } = useQuill();
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
   useEffect(() => {
-    if (openDialog && editorRef.current && !quillRef.current) {
-      const quill = new Quill(editorRef.current, {
-        theme: 'snow',
-        modules: {
-          toolbar: [
-            [{ 'header': [1, 2, false] }],
-            ['bold', 'italic', 'underline'],
-            ['code-block']
-          ]
-        },
-      });
-      quillRef.current = quill;
+    if (quill) {
       quill.on('text-change', () => {
         setNewPost(prev => ({ ...prev, body: quill.root.innerHTML }));
       });
     }
-
-    return () => {
-      if (quillRef.current) {
-        quillRef.current.off('text-change');
-        quillRef.current = null;
-      }
-    };
-  }, [openDialog]);
+  }, [quill]);
 
   const fetchPosts = async () => {
     try {
@@ -117,8 +98,8 @@ const App: React.FC = () => {
       await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
       setOpenDialog(false);
       setNewPost({ title: '', body: '', author: '', category: '' });
-      if (quillRef.current) {
-        quillRef.current.setContents([]);
+      if (quill) {
+        quill.setContents([]);
       }
       await fetchPosts();
     } catch (error) {
@@ -221,7 +202,7 @@ const App: React.FC = () => {
           </FormControl>
           <div className="mt-4">
             <Typography variant="subtitle1" gutterBottom>Body</Typography>
-            <div ref={editorRef} style={{ height: '200px' }} />
+            <div ref={quillRef} style={{ height: '200px' }} />
           </div>
         </DialogContent>
         <DialogActions>
