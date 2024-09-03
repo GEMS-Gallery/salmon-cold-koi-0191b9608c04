@@ -13,6 +13,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import { useAuth } from './AuthContext';
 
 interface Post {
   id: bigint;
@@ -65,6 +66,7 @@ const App: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
+  const { isAuthenticated, login, logout } = useAuth();
 
   useEffect(() => {
     fetchPosts();
@@ -82,6 +84,10 @@ const App: React.FC = () => {
   };
 
   const handleCreatePost = async () => {
+    if (!isAuthenticated) {
+      alert('Please login to create a post');
+      return;
+    }
     try {
       setLoading(true);
       await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
@@ -107,6 +113,11 @@ const App: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontFamily: '"Courier New", Courier, monospace' }}>
             Hacker's Blog
           </Typography>
+          {isAuthenticated ? (
+            <Button color="inherit" onClick={logout}>Logout</Button>
+          ) : (
+            <Button color="inherit" onClick={login}>Login</Button>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -124,16 +135,18 @@ const App: React.FC = () => {
           <CircularProgress />
         ) : (
           <>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenDialog(true)}
-              className="mb-4 mt-4"
-              sx={{ backgroundColor: 'black', '&:hover': { backgroundColor: 'gray' } }}
-            >
-              Create Post
-            </Button>
+            {isAuthenticated && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => setOpenDialog(true)}
+                className="mb-4 mt-4"
+                sx={{ backgroundColor: 'black', '&:hover': { backgroundColor: 'gray' } }}
+              >
+                Create Post
+              </Button>
+            )}
             {filteredPosts.map((post) => (
               <Card key={Number(post.id)} className="mb-4" sx={{ backgroundColor: '#f0f0f0', border: '1px solid black' }}>
                 <CardContent>
