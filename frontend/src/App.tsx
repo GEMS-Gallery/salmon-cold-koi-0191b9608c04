@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { backend } from 'declarations/backend';
 import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,6 +13,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import { useQuill } from 'react-quilljs';
 
 interface Post {
   id: bigint;
@@ -24,8 +25,8 @@ interface Post {
 }
 
 const categories = [
-  { name: 'Ethical Hacking', icon: <SecurityIcon /> },
   { name: 'All Categories', icon: <AllInclusiveIcon /> },
+  { name: 'Ethical Hacking', icon: <SecurityIcon /> },
   { name: 'Cybersecurity', icon: <LockIcon /> },
   { name: 'Network Security', icon: <PublicIcon /> },
   { name: 'Web Security', icon: <CodeIcon /> },
@@ -65,10 +66,19 @@ const App: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
+  const { quill, quillRef } = useQuill();
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (quill) {
+      quill.on('text-change', () => {
+        setNewPost(prev => ({ ...prev, body: quill.root.innerHTML }));
+      });
+    }
+  }, [quill]);
 
   const fetchPosts = async () => {
     try {
@@ -87,6 +97,9 @@ const App: React.FC = () => {
       await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
       setOpenDialog(false);
       setNewPost({ title: '', body: '', author: '', category: '' });
+      if (quill) {
+        quill.setContents([]);
+      }
       await fetchPosts();
     } catch (error) {
       console.error('Error creating post:', error);
@@ -94,9 +107,11 @@ const App: React.FC = () => {
     }
   };
 
-  const filteredPosts = selectedCategory
-    ? posts.filter(post => post.category === selectedCategory)
-    : posts;
+  const filteredPosts = useMemo(() => {
+    return selectedCategory
+      ? posts.filter(post => post.category === selectedCategory)
+      : posts;
+  }, [posts, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -141,7 +156,7 @@ const App: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace' }}>
                     By {post.author} | Category: {post.category} | {new Date(Number(post.timestamp) / 1000000).toLocaleString()}
                   </Typography>
-                  <Typography variant="body1" sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }}>{post.body}</Typography>
+                  <Typography variant="body1" sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }} dangerouslySetInnerHTML={{ __html: post.body }} />
                 </CardContent>
               </Card>
             ))}
@@ -149,7 +164,7 @@ const App: React.FC = () => {
         )}
       </Container>
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ fontFamily: '"Courier New", Courier, monospace' }}>Create New Post</DialogTitle>
         <DialogContent>
           <TextField
@@ -184,17 +199,10 @@ const App: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            margin="dense"
-            label="Body"
-            fullWidth
-            variant="outlined"
-            multiline
-            rows={4}
-            value={newPost.body}
-            onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
-            sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
-          />
+          <div className="mt-4">
+            <Typography variant="subtitle1" gutterBottom>Body</Typography>
+            <div ref={quillRef} />
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} sx={{ color: 'black' }}>Cancel</Button>

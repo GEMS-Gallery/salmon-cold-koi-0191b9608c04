@@ -1,6 +1,7 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import 'quill/dist/quill.snow.css';
 
 body {
   margin: 0;
@@ -14,4 +15,9 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.ql-editor {
+  min-height: 200px;
+  font-family: 'Courier New', Courier, monospace;
 }
