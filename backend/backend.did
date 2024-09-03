@@ -1,3 +1,8 @@
+type Result = 
+ variant {
+   err: text;
+   ok: nat;
+ };
 type Post = 
  record {
    author: text;
@@ -8,6 +13,7 @@ type Post =
    title: text;
  };
 service : {
-  createPost: (text, text, text, text) -> (nat);
+  createPost: (text, text, text, text) -> (Result);
   getPosts: () -> (vec Post) query;
+  healthCheck: () -> (text) query;
 }

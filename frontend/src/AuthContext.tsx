@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authClient?.login({
       identityProvider: process.env.II_URL,
       onSuccess: () => setIsAuthenticated(true),
+      onError: (error) => console.error('Login failed:', error),
     });
   };
 

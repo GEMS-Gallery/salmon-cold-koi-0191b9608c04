@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { backend } from 'declarations/backend';
-import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip, Snackbar } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SecurityIcon from '@mui/icons-material/Security';
 import CodeIcon from '@mui/icons-material/Code';
@@ -67,10 +67,22 @@ const App: React.FC = () => {
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
   const { isAuthenticated, login, logout } = useAuth();
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
 
   useEffect(() => {
     fetchPosts();
+    checkHealth();
   }, []);
+
+  const checkHealth = async () => {
+    try {
+      const health = await backend.healthCheck();
+      console.log('Health check:', health);
+    } catch (error) {
+      console.error('Health check failed:', error);
+      setSnackbar({ open: true, message: 'Service is currently unavailable. Please try again later.' });
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -79,23 +91,35 @@ const App: React.FC = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      setSnackbar({ open: true, message: 'Failed to fetch posts. Please try again.' });
       setLoading(false);
     }
   };
 
   const handleCreatePost = async () => {
     if (!isAuthenticated) {
-      alert('Please login to create a post');
+      setSnackbar({ open: true, message: 'Please login to create a post' });
+      return;
+    }
+    if (!newPost.title || !newPost.body || !newPost.author) {
+      setSnackbar({ open: true, message: 'Title, body, and author cannot be empty' });
       return;
     }
     try {
       setLoading(true);
-      await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
-      setOpenDialog(false);
-      setNewPost({ title: '', body: '', author: '', category: '' });
-      await fetchPosts();
+      const result = await backend.createPost(newPost.title, newPost.body, newPost.author, newPost.category);
+      if ('ok' in result) {
+        setOpenDialog(false);
+        setNewPost({ title: '', body: '', author: '', category: '' });
+        await fetchPosts();
+        setSnackbar({ open: true, message: 'Post created successfully' });
+      } else {
+        throw new Error(result.err);
+      }
     } catch (error) {
       console.error('Error creating post:', error);
+      setSnackbar({ open: true, message: `Failed to create post: ${error.message}` });
+    } finally {
       setLoading(false);
     }
   };
@@ -178,6 +202,7 @@ const App: React.FC = () => {
             value={newPost.title}
             onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
             sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
+            required
           />
           <TextField
             margin="dense"
@@ -187,6 +212,7 @@ const App: React.FC = () => {
             value={newPost.author}
             onChange={(e) => setNewPost({ ...newPost, author: e.target.value })}
             sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
+            required
           />
           <FormControl fullWidth margin="dense">
             <InputLabel id="category-label">Category</InputLabel>
@@ -211,6 +237,7 @@ const App: React.FC = () => {
             value={newPost.body}
             onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
             sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
+            required
           />
         </DialogContent>
         <DialogActions>
@@ -220,6 +247,13 @@ const App: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </div>
   );
 };
