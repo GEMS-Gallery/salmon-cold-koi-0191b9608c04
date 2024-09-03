@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { backend } from 'declarations/backend';
 import { AppBar, Toolbar, Typography, Container, Button, Card, CardContent, CircularProgress, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl, Chip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,7 +13,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
-import { useQuill } from 'react-quilljs';
+import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 
 interface Post {
@@ -61,13 +61,42 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedCategory, onCategor
   </div>
 );
 
+const useQuillEditor = () => {
+  const [quill, setQuill] = useState<Quill | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current && !quill) {
+      const q = new Quill(ref.current, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, false] }],
+            ['bold', 'italic', 'underline'],
+            ['code-block']
+          ]
+        },
+      });
+      setQuill(q);
+    }
+
+    return () => {
+      if (quill) {
+        quill.off('text-change');
+      }
+    };
+  }, [ref, quill]);
+
+  return { quill, quillRef: ref };
+};
+
 const App: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', author: '', category: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
-  const { quill, quillRef } = useQuill();
+  const { quill, quillRef } = useQuillEditor();
 
   useEffect(() => {
     fetchPosts();
