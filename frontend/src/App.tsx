@@ -46,35 +46,23 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <AppBar position="static">
+    <div className="min-h-screen bg-white">
+      <AppBar position="static" color="primary">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontFamily: '"Courier New", Courier, monospace' }}>
             Crypto Blog
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <div className="hero bg-blue-600 text-white py-16 mb-8">
-        <Container maxWidth="md">
-          <Typography variant="h2" component="h1" gutterBottom>
-            Welcome to Crypto Blog
-          </Typography>
-          <Typography variant="h5" component="p" gutterBottom>
-            Explore the latest insights in the world of cryptocurrency
-          </Typography>
-          <img
-            src="https://images.unsplash.com/photo-1643546352163-0f801330e91c?ixid=M3w2MzIxNTd8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MjUzOTIwMTZ8&ixlib=rb-4.0.3"
-            alt="Cryptocurrency"
-            className="mt-4 rounded-lg shadow-lg w-full"
-          />
-          <Typography variant="caption" display="block" gutterBottom>
-            Photo by <a href="https://unsplash.com/photos/a-blue-number-five-surrounded-by-icons--8wKJmsNDtw" target="_blank" rel="noopener noreferrer" className="text-white underline">Unsplash</a>
-          </Typography>
-        </Container>
-      </div>
+      <Container maxWidth="md" className="mt-8">
+        <Typography variant="h2" component="h1" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }}>
+          Welcome to Crypto Blog
+        </Typography>
+        <Typography variant="h5" component="p" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'gray' }}>
+          Explore the latest insights in the world of cryptocurrency
+        </Typography>
 
-      <Container maxWidth="md">
         {loading ? (
           <CircularProgress />
         ) : (
@@ -84,20 +72,21 @@ const App: React.FC = () => {
               color="primary"
               startIcon={<AddIcon />}
               onClick={() => setOpenDialog(true)}
-              className="mb-4"
+              className="mb-4 mt-4"
+              sx={{ backgroundColor: 'black', '&:hover': { backgroundColor: 'gray' } }}
             >
               Create Post
             </Button>
             {posts.map((post) => (
-              <Card key={Number(post.id)} className="mb-4">
+              <Card key={Number(post.id)} className="mb-4" sx={{ backgroundColor: '#f0f0f0', border: '1px solid black' }}>
                 <CardContent>
-                  <Typography variant="h5" component="div" gutterBottom>
+                  <Typography variant="h5" component="div" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }}>
                     {post.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontFamily: '"Courier New", Courier, monospace' }}>
                     By {post.author} | {new Date(Number(post.timestamp) / 1000000).toLocaleString()}
                   </Typography>
-                  <Typography variant="body1">{post.body}</Typography>
+                  <Typography variant="body1" sx={{ fontFamily: '"Courier New", Courier, monospace', color: 'black' }}>{post.body}</Typography>
                 </CardContent>
               </Card>
             ))}
@@ -106,7 +95,7 @@ const App: React.FC = () => {
       </Container>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Create New Post</DialogTitle>
+        <DialogTitle sx={{ fontFamily: '"Courier New", Courier, monospace' }}>Create New Post</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -116,6 +105,7 @@ const App: React.FC = () => {
             variant="outlined"
             value={newPost.title}
             onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
           />
           <TextField
             margin="dense"
@@ -124,6 +114,7 @@ const App: React.FC = () => {
             variant="outlined"
             value={newPost.author}
             onChange={(e) => setNewPost({ ...newPost, author: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
           />
           <TextField
             margin="dense"
@@ -134,11 +125,12 @@ const App: React.FC = () => {
             rows={4}
             value={newPost.body}
             onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { fontFamily: '"Courier New", Courier, monospace' } }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleCreatePost} variant="contained" color="primary">
+          <Button onClick={() => setOpenDialog(false)} sx={{ color: 'black' }}>Cancel</Button>
+          <Button onClick={handleCreatePost} variant="contained" sx={{ backgroundColor: 'black', '&:hover': { backgroundColor: 'gray' } }}>
             Create
           </Button>
         </DialogActions>
