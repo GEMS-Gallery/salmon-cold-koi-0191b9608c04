@@ -12,6 +12,7 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import LockIcon from '@mui/icons-material/Lock';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PublicIcon from '@mui/icons-material/Public';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 
 interface Post {
   id: bigint;
@@ -24,6 +25,7 @@ interface Post {
 
 const categories = [
   { name: 'Ethical Hacking', icon: <SecurityIcon /> },
+  { name: 'All Categories', icon: <AllInclusiveIcon /> },
   { name: 'Cybersecurity', icon: <LockIcon /> },
   { name: 'Network Security', icon: <PublicIcon /> },
   { name: 'Web Security', icon: <CodeIcon /> },
@@ -48,19 +50,12 @@ const CategoryList: React.FC<CategoryListProps> = ({ selectedCategory, onCategor
         key={category.name}
         icon={category.icon}
         label={category.name}
-        onClick={() => onCategorySelect(category.name)}
-        variant={selectedCategory === category.name ? "filled" : "outlined"}
+        onClick={() => onCategorySelect(category.name === 'All Categories' ? '' : category.name)}
+        variant={selectedCategory === (category.name === 'All Categories' ? '' : category.name) ? "filled" : "outlined"}
         className="m-1"
         sx={{ fontFamily: '"Courier New", Courier, monospace' }}
       />
     ))}
-    <Chip
-      label="All Categories"
-      onClick={() => onCategorySelect('')}
-      variant={selectedCategory === '' ? "filled" : "outlined"}
-      className="m-1"
-      sx={{ fontFamily: '"Courier New", Courier, monospace' }}
-    />
   </div>
 );
 
@@ -184,7 +179,7 @@ const App: React.FC = () => {
               onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
               sx={{ fontFamily: '"Courier New", Courier, monospace' }}
             >
-              {categories.map((category) => (
+              {categories.filter(category => category.name !== 'All Categories').map((category) => (
                 <MenuItem key={category.name} value={category.name}>{category.name}</MenuItem>
               ))}
             </Select>
